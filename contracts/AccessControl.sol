@@ -2,12 +2,23 @@
 pragma solidity ^0.8.0;
 
 contract AccessControl {
-    enum Role { Patient, Doctor, Nurse, Hospital, Lab }
+    enum Role { Patient, Doctor, Nurse, Hospital, Lab, Admin }
     mapping(address => Role) public userRoles;
     mapping(address => mapping(address => bool)) private permissions;
+    address public admin;
 
     event AccessGranted(address indexed grantee, address indexed provider, Role role);
     event AccessRevoked(address indexed grantee, address indexed provider);
+
+    constructor() {
+        admin = msg.sender;
+        userRoles[admin] = Role.Admin;
+    }
+
+    modifier onlyAdmin() {
+        require(msg.sender == admin);
+        _;
+    }
 
     modifier onlyPatient() {
         require(userRoles[msg.sender] == Role.Patient, "Not authorized");
@@ -19,7 +30,7 @@ contract AccessControl {
         _;
     }
 
-    function setRole(address _user, Role _role) public onlyPatient {
+    function setRole(address _user, Role _role) public onlyAdmin {
         userRoles[_user] = _role;
     }
 
